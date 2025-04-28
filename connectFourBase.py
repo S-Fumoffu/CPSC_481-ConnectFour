@@ -14,6 +14,7 @@ class ConnectFourBase(TicTacToe):
         self.game_states = {    0: "MODE_SELECT",
                                 1: "DIFFICULTY_SELECT",
                                 2: "PLAYING",
+                                3: "GAME OVER"
         }
 
         self.game_modes = {1: "Player vs Player",

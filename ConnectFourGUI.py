@@ -12,7 +12,7 @@ class ConnectFourGUI:
     def __init__(self):
         
         pg.init()
-        self.screen = pg.display.set_mode((800, 600))
+        self.screen = pg.display.set_mode((800, 800))
 
         pg.display.set_caption("Connect Four")
 
@@ -21,13 +21,17 @@ class ConnectFourGUI:
         self.screen_height = self.screen.get_rect().height
 
         # Create Buttons
-        self.pvp_button = Button(self, "Player vs Player", (self.screen_width * 0.5, self.screen_height * 0.30))
+        self.pvp_button = Button(self, "Player vs Player", (self.screen_width * 0.5, self.screen_height * 0.35))
         self.pvai_button = Button(self, "Player vs AI", (self.screen_width * 0.5, self.screen_height * 0.50))
-        self.aivai_button = Button(self, "AI vs AI", (self.screen_width * 0.5, self.screen_height * 0.70))
+        self.aivai_button = Button(self, "AI vs AI", (self.screen_width * 0.5, self.screen_height * 0.65))
 
-        self.easy_button = Button(self, "Easy", (self.screen_width * 0.5, self.screen_height * 0.30))
+        self.easy_button = Button(self, "Easy", (self.screen_width * 0.5, self.screen_height * 0.35))
         self.medium_button = Button(self, "Medium", (self.screen_width * 0.5, self.screen_height * 0.50))
-        self.hard_button = Button(self, "Hard", (self.screen_width * 0.5, self.screen_height * 0.70))
+        self.hard_button = Button(self, "Hard", (self.screen_width * 0.5, self.screen_height * 0.65))
+
+        self.menu_button = Button(self, "Menu", (self.screen_width * 0.5, self.screen_height * 0.9))
+        self.reset_button = Button(self, "Reset", (self.screen_width * 0.5, self.screen_height * 0.9))
+        self.exit_button = Button(self, "Exit", (self.screen_width * 0.5, self.screen_height * 0.9))
 
         self.connectFour = ConnectFourBase(game = self)
         
@@ -52,7 +56,7 @@ class ConnectFourGUI:
         for c in range(NUM_COLUMNS):
             for r in range(NUM_ROWS):
                 rect_x = board_start_x + c * SQUARESIZE
-                rect_y = r * SQUARESIZE + (SQUARESIZE / 2) # Offset vertically
+                rect_y = r * SQUARESIZE + SQUARESIZE # Offset vertically
                 pg.draw.rect(self.screen, (0, 0, 255), (rect_x, rect_y, SQUARESIZE, SQUARESIZE))
                 
                 circle_x = rect_x + SQUARESIZE // 2
@@ -67,7 +71,7 @@ class ConnectFourGUI:
                 color = (255, 255, 0)  # Yellow for Player 2 (O)
             
             piece_x = board_start_x + (col - 1) * SQUARESIZE + SQUARESIZE // 2
-            piece_y = (row - 1) * SQUARESIZE + (SQUARESIZE/2) + SQUARESIZE // 2
+            piece_y = (row - 1) * SQUARESIZE + SQUARESIZE + SQUARESIZE // 2
             pg.draw.circle(self.screen, color, (piece_x, piece_y), RADIUS)
 
     def setup_invisible_buttons(self):
@@ -81,7 +85,7 @@ class ConnectFourGUI:
 
         for c in range(NUM_COLUMNS):
             x = board_start_x + c * SQUARESIZE
-            y = SQUARESIZE / 2  # Same vertical offset as draw_board
+            y = SQUARESIZE  # Same vertical offset as draw_board
             width = SQUARESIZE
             height = SQUARESIZE * NUM_ROWS  # Covers all rows
             button = InvisibleButton(x, y, width, height)
@@ -89,8 +93,11 @@ class ConnectFourGUI:
 
     def update(self):
         # After event handling (OUTSIDE event for-loop! Every frame):
-        if not self.connectFour.game_over:
-            self.connectFour.play_turn()
+        if self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
+            if not self.connectFour.game_over:
+                self.connectFour.play_turn()
+            elif self.connectFour.game_over:
+                self.connectFour.state_index = 3
 
     def run(self):
         # Main loop
@@ -110,6 +117,10 @@ class ConnectFourGUI:
 
                             self.connectFour.state_index = 2         # State = Playing
                             self.connectFour.start_game()
+
+                        if self.exit_button.rect.collidepoint(event.pos):
+                            pg.quit()
+                            sys.exit()
 
                         elif self.pvai_button.rect.collidepoint(event.pos):
                             self.connectFour.mode_index = 2          # PvAI
@@ -143,22 +154,39 @@ class ConnectFourGUI:
                                 # print(i + 1)
                                 break  # Exit loop after the first valid click
 
+                        if self.menu_button.rect.collidepoint(event.pos):
+                            self.connectFour.state_index = 0        # Mode Select
+                            self.connectFour.mode_index = 0         # N/A Mode
+                            self.connectFour.difficulty_index = 0   # N/A Difficulty
+                    
+                    elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
+                        if self.reset_button.rect.collidepoint(event.pos):
+                            self.connectFour.state_index = 0        # Mode Select
+                            self.connectFour.mode_index = 0         # N/A Mode
+                            self.connectFour.difficulty_index = 0   # N/A Difficulty
+
             # Highlighting (hover effect)
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
                 self.pvp_button.set_highlight(mouse_pos)
                 self.pvai_button.set_highlight(mouse_pos)
                 self.aivai_button.set_highlight(mouse_pos)
+                self.exit_button.set_highlight(mouse_pos)
             elif self.connectFour.game_states[self.connectFour.state_index] == "DIFFICULTY_SELECT":
                 self.easy_button.set_highlight(mouse_pos)
                 self.medium_button.set_highlight(mouse_pos)
                 self.hard_button.set_highlight(mouse_pos)
+            elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
+                self.menu_button.set_highlight(mouse_pos)
+            elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
+                self.reset_button.set_highlight(mouse_pos)
 
-            # Draw everything
+            # Update and Draw
             self.screen.fill(BLACK)
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
                 self.pvp_button.draw()
                 self.pvai_button.draw()
                 self.aivai_button.draw()
+                self.exit_button.draw()
             elif self.connectFour.game_states[self.connectFour.state_index] == "DIFFICULTY_SELECT":
                 self.easy_button.draw()
                 self.medium_button.draw()
@@ -166,6 +194,10 @@ class ConnectFourGUI:
             elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
                 self.update()
                 self.draw_board()
+                self.menu_button.draw()
+            elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
+                self.draw_board()
+                self.reset_button.draw()
         
             pg.display.flip()
 
