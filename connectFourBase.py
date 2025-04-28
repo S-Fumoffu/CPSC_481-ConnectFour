@@ -92,7 +92,9 @@ class ConnectFourBase(TicTacToe):
 
         if self.terminal_test(self.state):
             self.game_over = True
-            winner = "Player 1" if self.utility(self.state, self.to_move(self.initial)) > 0 else "Player 2"
+            if self.utility(self.state, self.to_move(self.initial)) > 0: winner = "Player 1"
+            elif self.utility(self.state, self.to_move(self.initial)) < 0: winner = "Player 2"
+            else: winner = "No-one"
             print(f"{winner} won!")
             return  # Game is over, no further moves
 
@@ -201,12 +203,20 @@ def ai_player_medium(game, state):
 def ai_player_hard(game, state):
     return alpha_beta_cutoff_search(state, game, 8, None, None)
 
+# AI Helper Text
+def ai_helper(game, state, depth = 9):
+    optimal = alpha_beta_cutoff_search(state, game, depth, None, None)
+    print("Pssst, the most optimal move is: ", optimal)
+    return optimal
+
+# For running in Base
 def text_player(game, state):
     """Make a move by querying standard input."""
     print("available moves: {}".format(game.actions(state)))
     print("")
     move = None
     if game.actions(state):
+        ai_helper(game, state)
         move_string = input('Your move? ')
         try:
             move = eval(move_string)
@@ -228,8 +238,9 @@ if __name__ == "__main__":
     
     if (utility < 0):
         print("Player 2 won the game")
-    else:
+    elif (utility > 0):
         print("Player 1 won the game")
+    else: print("You're all losers.")
 
 
     
