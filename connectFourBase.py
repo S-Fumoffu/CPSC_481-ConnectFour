@@ -1,13 +1,14 @@
 from games import *
-
+import pygame as pg
 # Modified For Pygame
-class ConnectFourPygame(TicTacToe):
+class ConnectFourBase(TicTacToe):
     """A TicTacToe-like game in which you can only make a move on the bottom
     row, or in a square directly above an occupied square.  Traditionally
     played on a 7x6 board and requiring 4 in a row."""
 
-    def __init__(self, h=7, v=6, k=4):
+    def __init__(self, game, h=7, v=6, k=4):
         TicTacToe.__init__(self, h, v, k)
+        self.gui = game
         
         # Intializing Unique Features
         self.game_states = {    0: "MODE_SELECT",
@@ -38,13 +39,13 @@ class ConnectFourPygame(TicTacToe):
         state = self.initial
 
         self.display(state)
-        # TODO: CONVERT THIS DISPLAY INTO PYGAME
 
         while True:
             for player in players:
 
+                print (state.board.items())
+
                 print("Player: ", player)
-                # TODO: DISPLAY WHO'S TURN IT IS ON PYGAME
 
                 move = player(self, state)
                 state = self.result(state, move)
@@ -52,21 +53,50 @@ class ConnectFourPygame(TicTacToe):
                 print("Move: ", move)
 
                 self.display(state)
-                # TODO: CONVERT THIS DISPLAY INTO PYGAME
 
                 if self.terminal_test(state):
                     print(state)
                     return self.utility(state, self.to_move(self.initial))
 
     def start_game(self):
-        self.input_mode()
         self.initialize_mode()
-        utility = self.play_game(self.player1, self.player2)
+        self.state = self.initial
+        self.current_players = [self.player1, self.player2]
         
-        if (utility < 0):
-            print("Player 2 won the game")
-        else:
-            print("Player 1 won the game")
+        self.current_player_index = 0
+        self.game_over = False
+        self.display(self.state)
+
+    def play_turn(self):
+        """Plays one move per call."""
+        if self.game_over:
+            return
+
+        player = self.current_players[self.current_player_index]
+        
+        # Get the selected column (from mouse click or user input)
+        move = player(self, self.state)
+        
+        if move is None:
+            return  # No move yet — wait for user click!
+
+        # Ensure the selected column has an available space (starting from the bottom)
+        for row in range(5, -1, -1):  # Check from bottom row (5) to top row (0)
+            if (row + 1, move[1]) not in self.state.board:  # Check if space is empty
+                self.state.board[(row + 1, move[1])] = player  # Place the piece in the first available space
+                break  # Exit the loop once the piece is placed
+        
+        self.state = self.result(self.state, move)
+        self.display(self.state)
+
+        if self.terminal_test(self.state):
+            self.game_over = True
+            winner = "Player 1" if self.utility(self.state, self.to_move(self.initial)) > 0 else "Player 2"
+            print(f"{winner} won!")
+            # Optional: GUI popup for "Player X Wins!"
+
+        self.current_player_index = 1 - self.current_player_index  # Switch players
+
 
     # Input Settings
     def input_mode(self):
@@ -125,27 +155,26 @@ class ConnectFourPygame(TicTacToe):
                 self.player2 = ai_player_medium
             elif self.ai_difficulties[self.difficulty_index] == "Hard":
                 self.player2 = ai_player_hard
-
+    
+    def human_move(self):
+    
+        """Human move: wait for the GUI to set a move."""
+        if self.gui.selected_move is not None:
+            move = self.gui.selected_move
+            self.gui.selected_move = None  # Reset after using
+            return move
+        else:
+            return None  # No move yet; play_turn() will simply wait
+    
 # Query Player
 def human_player(game, state):
-    """Make a move by querying standard input."""
     print("available moves: {}".format(game.actions(state)))
-    print("")
-    move = None
-    if game.actions(state):
-        move_string = human_move()
-        try:
-            move = eval(move_string)
-        except NameError:
-            move = move_string
-    else:
-        print('no legal moves: passing turn to next player')
+    move = game.gui.selected_move
+
+    if move:
+        game.gui.selected_move = None  # reset for next click
     return move
 
-# TODO: UPDATE THIS TO RETURN A MOVE VIA PYGAME CLICK
-def human_move():
-    move_string = input('Your move? ')
-    return move_string
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
@@ -158,7 +187,7 @@ def ai_player_hard(game, state):
     return alpha_beta_cutoff_search(state, game, 8, None, None)
 
 if __name__ == "__main__":
-    connectFour = ConnectFourPygame()
+    connectFour = ConnectFourBase()
     
     connectFour.input_mode()
     connectFour.initialize_mode()

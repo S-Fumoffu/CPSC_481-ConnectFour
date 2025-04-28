@@ -27,10 +27,35 @@ class ConnectFourGUI:
         self.medium_button = Button(self, "Medium", (self.screen_width * 0.5, self.screen_height * 0.50))
         self.hard_button = Button(self, "Hard", (self.screen_width * 0.5, self.screen_height * 0.70))
 
-        self.connectFour = ConnectFourPygame()
+        self.connectFour = ConnectFourBase(game = self)
+        
+        # Moves
+        self.selected_move = None
 
-    def draw_board():
-        pass
+    def draw_board(self):
+        SQUARESIZE = 80  # Size of each square
+        RADIUS = SQUARESIZE // 2 - 5  # Size of the pieces
+        
+        # Draw the background and empty circles
+        for c in range(7):  # 7 columns
+            for r in range(5, -1, -1):  # 6 rows (start from row 5 and go to row 0)
+                # Draw blue board background
+                pg.draw.rect(self.screen, (0, 0, 255), (c*SQUARESIZE, r*SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE))
+                # Draw black empty circle
+                pg.draw.circle(self.screen, (0, 0, 0), 
+                            (int(c*SQUARESIZE + SQUARESIZE/2), int(r*SQUARESIZE + SQUARESIZE + SQUARESIZE/2)), RADIUS)
+
+        # Draw the pieces based on current state
+        for (row, col), player in self.connectFour.state.board.items():
+            if player == 'X':
+                color = (255, 0, 0)  # Red for Player 1 (X)
+            else:
+                color = (255, 255, 0)  # Yellow for Player 2 (O)
+            
+            # Draw the circle for each player's piece
+            pg.draw.circle(self.screen, color, 
+                        (int((col-1)*SQUARESIZE + SQUARESIZE/2), int((row-1)*SQUARESIZE + SQUARESIZE + SQUARESIZE/2)), RADIUS)
+
 
     def run(self):
         # Main loop
@@ -49,6 +74,7 @@ class ConnectFourGUI:
                             self.connectFour.difficulty_index = 0    # N/A Difficulty
 
                             self.connectFour.state_index = 2         # State = Playing
+                            self.connectFour.start_game()
 
                         elif self.pvai_button.rect.collidepoint(event.pos):
                             self.connectFour.mode_index = 2          # PvAI
@@ -58,17 +84,27 @@ class ConnectFourGUI:
                         if self.easy_button.rect.collidepoint(event.pos):
                             self.connectFour.difficulty_index = 1    # Easy Difficulty
                             self.connectFour.state_index = 2         # State = Playing
+                            self.connectFour.start_game()
 
                         elif self.medium_button.rect.collidepoint(event.pos):
                             self.connectFour.difficulty_index = 2    # Medium Difficulty
                             self.connectFour.state_index = 2         # State = Playing
+                            self.connectFour.start_game()
 
                         elif self.hard_button.rect.collidepoint(event.pos):
                             self.connectFour.difficulty_index = 3    # Hard Difficulty
                             self.connectFour.state_index = 2         # State = Playing
+                            self.connectFour.start_game()
 
                     elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
-                        pass
+                        if event.type == pg.MOUSEBUTTONDOWN:
+                            posx = event.pos[0]
+                            col = posx // 80 + 1  # 80 px per square
+                            self.selected_move = (1, col)  # Save the move
+
+                        # After event handling (OUTSIDE event for-loop! Every frame):
+                        if not self.connectFour.game_over:
+                            self.connectFour.play_turn()
 
             # Highlighting (hover effect)
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
@@ -89,8 +125,7 @@ class ConnectFourGUI:
                 self.medium_button.draw()
                 self.hard_button.draw()
             elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
-                pass
-                # draw_board()
+                self.draw_board()
         
             pg.display.flip()
 
