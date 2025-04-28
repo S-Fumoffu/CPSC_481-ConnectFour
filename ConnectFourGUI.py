@@ -3,6 +3,7 @@ import sys
 from colors import *
 from fonts import *
 from button import Button
+from invisible_button import InvisibleButton
 from connectFourBase import *
 
 import ctypes
@@ -32,20 +33,24 @@ class ConnectFourGUI:
         # Moves
         self.selected_move = None
 
+        # Triggers
+        self.setup_invisible_buttons()
+
+    # BUGS MAY BE FOUND HERE
     def draw_board(self):
         SQUARESIZE = 80  # Size of each square
         RADIUS = SQUARESIZE // 2 - 5  # Size of the pieces
         
         # Draw the background and empty circles
         for c in range(7):  # 7 columns
-            for r in range(5, -1, -1):  # 6 rows (start from row 5 and go to row 0)
+            for r in range(6):  # 6 rows (start from row 0 to row 5)
                 # Draw blue board background
                 pg.draw.rect(self.screen, (0, 0, 255), (c*SQUARESIZE, r*SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE))
                 # Draw black empty circle
                 pg.draw.circle(self.screen, (0, 0, 0), 
                             (int(c*SQUARESIZE + SQUARESIZE/2), int(r*SQUARESIZE + SQUARESIZE + SQUARESIZE/2)), RADIUS)
 
-        # Draw the pieces based on current state
+        # Now draw the pieces based on current state
         for (row, col), player in self.connectFour.state.board.items():
             if player == 'X':
                 color = (255, 0, 0)  # Red for Player 1 (X)
@@ -54,8 +59,18 @@ class ConnectFourGUI:
             
             # Draw the circle for each player's piece
             pg.draw.circle(self.screen, color, 
-                        (int((col-1)*SQUARESIZE + SQUARESIZE/2), int((row-1)*SQUARESIZE + SQUARESIZE + SQUARESIZE/2)), RADIUS)
+                           (int((col-1)*SQUARESIZE + SQUARESIZE/2), int((row-1)*SQUARESIZE + SQUARESIZE + SQUARESIZE/2)), RADIUS)
 
+    def setup_invisible_buttons(self):
+        SQUARESIZE = 80  # Size of each square
+        self.invisible_buttons = []
+
+        # Create an invisible button for each column
+        for c in range(7):  # 7 columns
+            x = c * SQUARESIZE  # Horizontal position
+            y = 0  # They will cover the top of the columns
+            button = InvisibleButton(x, y, SQUARESIZE, SQUARESIZE * 6)  # Full height of the column
+            self.invisible_buttons.append(button)
 
     def run(self):
         # Main loop
@@ -95,12 +110,15 @@ class ConnectFourGUI:
                             self.connectFour.difficulty_index = 3    # Hard Difficulty
                             self.connectFour.state_index = 2         # State = Playing
                             self.connectFour.start_game()
-
+                    
+                    # BUGS MAY BE FOUND HERE
                     elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
-                        if event.type == pg.MOUSEBUTTONDOWN:
-                            posx = event.pos[0]
-                            col = posx // 80 + 1  # 80 px per square
-                            self.selected_move = (1, col)  # Save the move
+                        # Check if any invisible button is clicked (column selection)
+                        for i, button in enumerate(self.invisible_buttons):
+                            if button.is_clicked(event.pos):
+                                self.connectFour.gui.selected_move = (7, i + 1)  # Store the selected column (1-indexed)
+                                print(i + 1)
+                                break  # Exit loop after the first valid click
 
                         # After event handling (OUTSIDE event for-loop! Every frame):
                         if not self.connectFour.game_over:

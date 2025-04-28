@@ -67,28 +67,30 @@ class ConnectFourBase(TicTacToe):
         self.game_over = False
         self.display(self.state)
 
+    # BUGS MAY BE FOUND HERE
     def play_turn(self):
         """Plays one move per call."""
         if self.game_over:
             return
 
+        # Get the selected move for the human player
         player = self.current_players[self.current_player_index]
-        
-        # Get the selected column (from mouse click or user input)
-        move = player(self, self.state)
+        move = player(self, self.state)  # This will return a valid move or None
         
         if move is None:
-            return  # No move yet — wait for user click!
-
-        # Ensure the selected column has an available space (starting from the bottom)
-        for row in range(5, -1, -1):  # Check from bottom row (5) to top row (0)
-            if (row + 1, move[1]) not in self.state.board:  # Check if space is empty
-                self.state.board[(row + 1, move[1])] = player  # Place the piece in the first available space
-                break  # Exit the loop once the piece is placed
+            return  # Wait for a valid move (in case the player clicked an invalid column)
         
+        # Find the first available space in the column (starting from the bottom)
+        for row in range(5, -1, -1):  # Check from bottom row (5) to top row (0)
+            if (row + 1, move[1]) not in self.state.board:  # If space is empty
+                self.state.board[(row + 1, move[1])] = player  # Place the piece
+                break
+        
+        # Update the game state after placing the piece
         self.state = self.result(self.state, move)
         self.display(self.state)
 
+        # Check if the game is over
         if self.terminal_test(self.state):
             self.game_over = True
             winner = "Player 1" if self.utility(self.state, self.to_move(self.initial)) > 0 else "Player 2"
@@ -155,26 +157,25 @@ class ConnectFourBase(TicTacToe):
                 self.player2 = ai_player_medium
             elif self.ai_difficulties[self.difficulty_index] == "Hard":
                 self.player2 = ai_player_hard
-    
-    def human_move(self):
-    
-        """Human move: wait for the GUI to set a move."""
-        if self.gui.selected_move is not None:
-            move = self.gui.selected_move
-            self.gui.selected_move = None  # Reset after using
-            return move
-        else:
-            return None  # No move yet; play_turn() will simply wait
-    
+
+# BUGS MAY BE FOUND HERE
 # Query Player
 def human_player(game, state):
-    print("available moves: {}".format(game.actions(state)))
-    move = game.gui.selected_move
+    """Make a move by querying available actions and the selected column."""
+    available_moves = game.actions(state)  # Get the list of valid moves (columns with available space)
+    print("Available moves:", available_moves)
+    
+    move = game.gui.selected_move  # Get the selected move from the GUI
 
     if move:
-        game.gui.selected_move = None  # reset for next click
-    return move
-
+        # Check if the selected move is valid
+        if move in available_moves:
+            game.gui.selected_move = None  # Reset the move for the next turn
+            return move
+        else:
+            print("Invalid move! Please choose a valid column.")
+            game.gui.selected_move = None  # Reset the move if it's invalid
+    return None  # If no valid move, return None and wait for a valid selection
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
