@@ -17,7 +17,8 @@ class ConnectFourBase(TicTacToe):
         }
 
         self.game_modes = {1: "Player vs Player",
-                           2: "Player vs AI"}
+                           2: "Player vs AI",
+                           3: "AI vs AI"}
         
         self.ai_difficulties = {0: "N/A",
                                 1: "Easy",
@@ -114,7 +115,7 @@ class ConnectFourBase(TicTacToe):
                 is_input_valid = True
                 
                 # If selecting AI,
-                if input_mode == 2:
+                if input_mode == 2 or input_mode == 3:
                     # Display Prompt
                     print("Select AI Difficulty:" \
                         "\n 1. Easy" \
@@ -132,7 +133,7 @@ class ConnectFourBase(TicTacToe):
                             print("Invalid Input. Input 1 for easy, 2 for medium, 3 for hard.")
             
             else:
-                print("Invalid Input. Input 1 for PvP or 2 for PvAI")
+                print("Invalid Input. Input 1 for PvP, 2 for PvAI, 3 for AIvAI")
 
             self.mode_index = input_mode
             self.difficulty_index = input_difficulty
@@ -152,6 +153,16 @@ class ConnectFourBase(TicTacToe):
             elif self.ai_difficulties[self.difficulty_index] == "Medium":
                 self.player2 = ai_player_medium
             elif self.ai_difficulties[self.difficulty_index] == "Hard":
+                self.player2 = ai_player_hard
+        elif self.game_modes[self.mode_index] == "AI vs AI":
+            if self.ai_difficulties[self.difficulty_index] == "Easy":
+                self.player1 = ai_player_easy
+                self.player2 = ai_player_easy
+            elif self.ai_difficulties[self.difficulty_index] == "Medium":
+                self.player1 = ai_player_medium
+                self.player2 = ai_player_medium
+            elif self.ai_difficulties[self.difficulty_index] == "Hard":
+                self.player1 = ai_player_hard
                 self.player2 = ai_player_hard
 
 # Query Player

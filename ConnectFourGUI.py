@@ -21,8 +21,9 @@ class ConnectFourGUI:
         self.screen_height = self.screen.get_rect().height
 
         # Create Buttons
-        self.pvp_button = Button(self, "Player vs Player", (self.screen_width * 0.5, self.screen_height * 0.35))
-        self.pvai_button = Button(self, "Player vs AI", (self.screen_width * 0.5, self.screen_height * 0.65))
+        self.pvp_button = Button(self, "Player vs Player", (self.screen_width * 0.5, self.screen_height * 0.30))
+        self.pvai_button = Button(self, "Player vs AI", (self.screen_width * 0.5, self.screen_height * 0.50))
+        self.aivai_button = Button(self, "AI vs AI", (self.screen_width * 0.5, self.screen_height * 0.70))
 
         self.easy_button = Button(self, "Easy", (self.screen_width * 0.5, self.screen_height * 0.30))
         self.medium_button = Button(self, "Medium", (self.screen_width * 0.5, self.screen_height * 0.50))
@@ -114,6 +115,10 @@ class ConnectFourGUI:
                             self.connectFour.mode_index = 2          # PvAI
                             self.connectFour.state_index = 1         # State = Difficulty Select
 
+                        elif self.aivai_button.rect.collidepoint(event.pos):
+                            self.connectFour.mode_index = 3          # AIvAI
+                            self.connectFour.state_index = 1         # State = Difficulty Select
+
                     elif self.connectFour.game_states[self.connectFour.state_index] == "DIFFICULTY_SELECT":
                         if self.easy_button.rect.collidepoint(event.pos):
                             self.connectFour.difficulty_index = 1    # Easy Difficulty
@@ -130,7 +135,6 @@ class ConnectFourGUI:
                             self.connectFour.state_index = 2         # State = Playing
                             self.connectFour.start_game()
                     
-                    # BUGS MAY BE FOUND HERE
                     elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
                         # Check if any invisible button is clicked (column selection)
                         for i, button in enumerate(self.invisible_buttons):
@@ -143,6 +147,7 @@ class ConnectFourGUI:
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
                 self.pvp_button.set_highlight(mouse_pos)
                 self.pvai_button.set_highlight(mouse_pos)
+                self.aivai_button.set_highlight(mouse_pos)
             elif self.connectFour.game_states[self.connectFour.state_index] == "DIFFICULTY_SELECT":
                 self.easy_button.set_highlight(mouse_pos)
                 self.medium_button.set_highlight(mouse_pos)
@@ -153,6 +158,7 @@ class ConnectFourGUI:
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
                 self.pvp_button.draw()
                 self.pvai_button.draw()
+                self.aivai_button.draw()
             elif self.connectFour.game_states[self.connectFour.state_index] == "DIFFICULTY_SELECT":
                 self.easy_button.draw()
                 self.medium_button.draw()
