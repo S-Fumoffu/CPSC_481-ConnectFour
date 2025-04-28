@@ -80,12 +80,6 @@ class ConnectFourBase(TicTacToe):
         if move is None:
             return  # Wait for a valid move (in case the player clicked an invalid column)
         
-        # Find the first available space in the column (starting from the bottom)
-        for row in range(5, -1, -1):  # Check from bottom row (5) to top row (0)
-            if (row + 1, move[1]) not in self.state.board:  # If space is empty
-                self.state.board[(row + 1, move[1])] = player  # Place the piece
-                break
-        
         # Update the game state after placing the piece
         self.state = self.result(self.state, move)
         self.display(self.state)
@@ -162,19 +156,20 @@ class ConnectFourBase(TicTacToe):
 # Query Player
 def human_player(game, state):
     """Make a move by querying available actions and the selected column."""
-    available_moves = game.actions(state)  # Get the list of valid moves (columns with available space)
+    available_moves = game.actions(state)  # Get the list of valid moves (tuples)
     print("Available moves:", available_moves)
     
-    move = game.gui.selected_move  # Get the selected move from the GUI
+    move_column = game.gui.selected_move  # Get the selected move from the GUI
 
-    if move:
-        # Check if the selected move is valid
-        if move in available_moves:
-            game.gui.selected_move = None  # Reset the move for the next turn
-            return move
-        else:
-            print("Invalid move! Please choose a valid column.")
-            game.gui.selected_move = None  # Reset the move if it's invalid
+    if move_column is not None:
+        # Find the move where the second value matches the selected column
+        for move in available_moves:
+            if move[1] == move_column:
+                game.gui.selected_move = None  # Reset the move for the next turn
+                print("Chosen move:", move)
+                return move
+        print("Invalid move! Please choose a valid column.")
+        game.gui.selected_move = None  # Reset the move if it's invalid
     return None  # If no valid move, return None and wait for a valid selection
 
 # AlphaBetaGamer
