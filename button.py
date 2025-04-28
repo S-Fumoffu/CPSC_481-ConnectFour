@@ -5,9 +5,9 @@ from fonts import *
 
 class Button:
     """A class to build buttons for the game."""
-    def __init__(self, si_game, msg, pos):
+    def __init__(self, game, msg, pos):
         """Initialize button attributes."""
-        self.screen = si_game.screen
+        self.screen = game.screen
         self.screen_rect = self.screen.get_rect()
 
         # Set the dimensions and properties of the button.
