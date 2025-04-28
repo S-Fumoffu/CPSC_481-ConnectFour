@@ -86,6 +86,10 @@ class ConnectFourGUI:
             button = InvisibleButton(x, y, width, height)
             self.invisible_buttons.append(button)
 
+    def update(self):
+        # After event handling (OUTSIDE event for-loop! Every frame):
+        if not self.connectFour.game_over:
+            self.connectFour.play_turn()
 
     def run(self):
         # Main loop
@@ -132,13 +136,8 @@ class ConnectFourGUI:
                         for i, button in enumerate(self.invisible_buttons):
                             if button.is_clicked(event.pos):
                                 self.connectFour.gui.selected_move = i + 1  # Store the selected column (1-indexed)
-                                print(i + 1)
-
+                                # print(i + 1)
                                 break  # Exit loop after the first valid click
-
-                        # After event handling (OUTSIDE event for-loop! Every frame):
-                        if not self.connectFour.game_over:
-                            self.connectFour.play_turn()
 
             # Highlighting (hover effect)
             if self.connectFour.game_states[self.connectFour.state_index] == "MODE_SELECT":
@@ -159,6 +158,7 @@ class ConnectFourGUI:
                 self.medium_button.draw()
                 self.hard_button.draw()
             elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
+                self.update()
                 self.draw_board()
         
             pg.display.flip()

@@ -30,6 +30,9 @@ class ConnectFourBase(TicTacToe):
         # Players
         self.player1 = self.player2 = human_player
 
+        # Flags
+        self.has_printed_available_moves = False
+
     def actions(self, state):
         return [(x, y) for (x, y) in state.moves
                 if x == self.h or (x + 1 , y ) in state.board]
@@ -67,32 +70,31 @@ class ConnectFourBase(TicTacToe):
         self.game_over = False
         self.display(self.state)
 
-    # BUGS MAY BE FOUND HERE
     def play_turn(self):
-        """Plays one move per call."""
+        """Plays as many moves as needed until a human input is needed."""
         if self.game_over:
             return
 
-        # Get the selected move for the human player
         player = self.current_players[self.current_player_index]
-        move = player(self, self.state)  # This will return a valid move or None
-        
+        move = player(self, self.state)  # Human returns None if waiting for input
+
         if move is None:
-            return  # Wait for a valid move (in case the player clicked an invalid column)
+            # No move yet (e.g., human needs to click)
+            return
         
-        # Update the game state after placing the piece
+        # Otherwise, move is valid -> apply it
         self.state = self.result(self.state, move)
         self.display(self.state)
+        pg.display.flip()
 
-        # Check if the game is over
         if self.terminal_test(self.state):
             self.game_over = True
             winner = "Player 1" if self.utility(self.state, self.to_move(self.initial)) > 0 else "Player 2"
             print(f"{winner} won!")
-            # Optional: GUI popup for "Player X Wins!"
+            return  # Game is over, no further moves
 
-        self.current_player_index = 1 - self.current_player_index  # Switch players
-
+        # Switch player
+        self.current_player_index = 1 - self.current_player_index
 
     # Input Settings
     def input_mode(self):
@@ -152,13 +154,15 @@ class ConnectFourBase(TicTacToe):
             elif self.ai_difficulties[self.difficulty_index] == "Hard":
                 self.player2 = ai_player_hard
 
-# BUGS MAY BE FOUND HERE
 # Query Player
 def human_player(game, state):
     """Make a move by querying available actions and the selected column."""
     available_moves = game.actions(state)  # Get the list of valid moves (tuples)
-    print("Available moves:", available_moves)
     
+    if not game.has_printed_available_moves:
+        print("Available moves:", available_moves)
+        game.has_printed_available_moves = True
+
     move_column = game.gui.selected_move  # Get the selected move from the GUI
 
     if move_column is not None:
@@ -167,6 +171,7 @@ def human_player(game, state):
             if move[1] == move_column:
                 game.gui.selected_move = None  # Reset the move for the next turn
                 print("Chosen move:", move)
+                game.has_printed_available_moves = False
                 return move
         print("Invalid move! Please choose a valid column.")
         game.gui.selected_move = None  # Reset the move if it's invalid
