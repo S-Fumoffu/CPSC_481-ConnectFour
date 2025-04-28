@@ -47,7 +47,8 @@ class ConnectFourBase(TicTacToe):
         while True:
             for player in players:
 
-                print (state.board.items())
+                # For debugging
+                # print(state)
 
                 print("Player: ", player)
 
@@ -106,7 +107,8 @@ class ConnectFourBase(TicTacToe):
         # Display Prompt
         print("Select Game Mode:" \
             "\n 1. Player vs Player" \
-            "\n 2. Player vs AI")
+            "\n 2. Player vs AI" \
+            "\n 3. AI vs AI")
 
         # While the input is not valid:
         while not is_input_valid:
@@ -198,9 +200,26 @@ def ai_player_medium(game, state):
 def ai_player_hard(game, state):
     return alpha_beta_cutoff_search(state, game, 8, None, None)
 
+def text_player(game, state):
+    """Make a move by querying standard input."""
+    print("available moves: {}".format(game.actions(state)))
+    print("")
+    move = None
+    if game.actions(state):
+        move_string = input('Your move? ')
+        try:
+            move = eval(move_string)
+        except NameError:
+            move = move_string
+    else:
+        print('no legal moves: passing turn to next player')
+    return move
+
 if __name__ == "__main__":
-    connectFour = ConnectFourBase()
+    connectFour = ConnectFourBase(game = 0)
     
+    human_player = text_player
+
     connectFour.input_mode()
     connectFour.initialize_mode()
     
