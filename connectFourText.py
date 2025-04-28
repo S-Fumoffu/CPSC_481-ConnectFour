@@ -16,17 +16,26 @@ class ConnectFourPygame(TicTacToe):
     def play_game(self, *players):
         """Play an n-person, move-alternating game."""
         state = self.initial
+
+        self.display(state)
+        # TODO: CONVERT THIS DISPLAY INTO PYGAME
+
         while True:
             for player in players:
-                self.display(state)
+
+                print("Player: ", player)
+                # TODO: DISPLAY WHO'S TURN IT IS ON PYGAME
 
                 move = player(self, state)
                 state = self.result(state, move)
 
-                print("Player: ", player)
                 print("Move: ", move)
+
+                self.display(state)
+                # TODO: CONVERT THIS DISPLAY INTO PYGAME
+
                 if self.terminal_test(state):
-                    self.display(state)
+                    print(state)
                     return self.utility(state, self.to_move(self.initial))
 
 # Query Player
@@ -45,7 +54,7 @@ def human_player(game, state):
         print('no legal moves: passing turn to next player')
     return move
 
-# WILL UPDATE THIS TO RETURN A MOVE VIA PYGAME CLICK
+# TODO: UPDATE THIS TO RETURN A MOVE VIA PYGAME CLICK
 def human_move():
     move_string = input('Your move? ')
     return move_string
@@ -136,5 +145,3 @@ if __name__ == "__main__":
         print("Player 2 won the game")
     else:
         print("Player 1 won the game")
-
-    # print ("\n utility is ", utility)
