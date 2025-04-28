@@ -3,6 +3,7 @@ import sys
 from colors import *
 from fonts import *
 from button import Button
+from connectFourText import *
 
 import ctypes
 ctypes.windll.user32.SetProcessDPIAware()
@@ -10,15 +11,6 @@ ctypes.windll.user32.SetProcessDPIAware()
 pg.init()
 screen = pg.display.set_mode((800, 600))
 pg.display.set_caption("Connect Four")
-
-# Game States
-MENU = 0
-DIFFICULTY = 1
-PLAYING = 2
-
-game_state = MENU
-game_mode = None
-difficulty = None
 
 # For positioning
 screen_width = screen.get_rect().width
@@ -35,6 +27,8 @@ def draw_board():
     pass
 
 if __name__ == "__main__":
+    connectFour = ConnectFourPygame()
+    
     # Main loop
     while True:
         mouse_pos = pg.mouse.get_pos()
@@ -44,47 +38,53 @@ if __name__ == "__main__":
                 sys.exit()
 
             if event.type == pg.MOUSEBUTTONDOWN:
-                if game_state == MENU:
+                if connectFour.game_states[connectFour.state_index] == "MODE_SELECT":
                     if pvp_button.rect.collidepoint(event.pos):
-                        game_mode = "PvP"
-                        game_state = PLAYING
+
+                        connectFour.mode_index = 1          # PvP
+                        connectFour.difficulty_index = 0    # N/A Difficulty
+
+                        connectFour.state_index = 2         # State = Playing
+
                     elif pvai_button.rect.collidepoint(event.pos):
-                        game_mode = "PvAI"
-                        game_state = DIFFICULTY
+                        connectFour.mode_index = 2          # PvAI
+                        connectFour.state_index = 1         # State = Difficulty Select
 
-                elif game_state == DIFFICULTY:
+                elif connectFour.game_states[connectFour.state_index] == "DIFFICULTY_SELECT":
                     if easy_button.rect.collidepoint(event.pos):
-                        difficulty = "Easy"
-                        game_state = PLAYING
-                    elif medium_button.rect.collidepoint(event.pos):
-                        difficulty = "Medium"
-                        game_state = PLAYING
-                    elif hard_button.rect.collidepoint(event.pos):
-                        difficulty = "Hard"
-                        game_state = PLAYING
+                        connectFour.difficulty_index = 1    # Easy Difficulty
+                        connectFour.state_index = 2         # State = Playing
 
-                elif game_state == PLAYING:
+                    elif medium_button.rect.collidepoint(event.pos):
+                        connectFour.difficulty_index = 2    # Medium Difficulty
+                        connectFour.state_index = 2         # State = Playing
+
+                    elif hard_button.rect.collidepoint(event.pos):
+                        connectFour.difficulty_index = 3    # Hard Difficulty
+                        connectFour.state_index = 2         # State = Playing
+
+                elif connectFour.game_states[connectFour.state_index] == "PLAYING":
                     pass
 
         # Highlighting (hover effect)
-        if game_state == MENU:
+        if connectFour.game_states[connectFour.state_index] == "MODE_SELECT":
             pvp_button.set_highlight(mouse_pos)
             pvai_button.set_highlight(mouse_pos)
-        elif game_state == DIFFICULTY:
+        elif connectFour.game_states[connectFour.state_index] == "DIFFICULTY_SELECT":
             easy_button.set_highlight(mouse_pos)
             medium_button.set_highlight(mouse_pos)
             hard_button.set_highlight(mouse_pos)
 
         # Draw everything
         screen.fill(BLACK)
-        if game_state == MENU:
+        if connectFour.game_states[connectFour.state_index] == "MODE_SELECT":
             pvp_button.draw()
             pvai_button.draw()
-        elif game_state == DIFFICULTY:
+        elif connectFour.game_states[connectFour.state_index] == "DIFFICULTY_SELECT":
             easy_button.draw()
             medium_button.draw()
             hard_button.draw()
-        elif game_state == PLAYING:
+        elif connectFour.game_states[connectFour.state_index] == "PLAYING":
             pass
             # draw_board()
 

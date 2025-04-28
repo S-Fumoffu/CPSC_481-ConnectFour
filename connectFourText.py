@@ -22,7 +22,7 @@ class ConnectFourPygame(TicTacToe):
                                 1: "Easy",
                                 2: "Medium",
                                 3: "Hard"}
-        self.game_index = 0
+        self.state_index = 0
         self.mode_index = 0
         self.difficulty_index = 0
 
