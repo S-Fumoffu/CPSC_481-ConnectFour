@@ -111,8 +111,8 @@ class ConnectFourGUI:
     def initialize_ai_assistant_text(self):
         font_ai = pg.font.Font(PIXEL, 35)
 
-        self.titan_text = font_ai.render("Titan ", True, BLUE)
-        self.ai_text = font_ai.render("AI:", True, ORANGE)
+        self.titan_text = font_ai.render("Titan", True, BLUE)
+        self.ai_text = font_ai.render("AI:  ", True, ORANGE)
 
         x_pos = self.screen_width * 0.01
         y_pos = self.screen_height * 0.20
@@ -128,12 +128,13 @@ class ConnectFourGUI:
         self.screen.blit(self.ai_text, self.aiRect)
 
     def prep_cheat_text(self, declaration = "", color = ORANGE):
-        font_cheat = pg.font.Font(PIXEL, 25)
+        font_cheat = pg.font.Font(PIXEL, 35)
 
         self.cheat_text = font_cheat.render(f"{declaration}", True, color)
         self.cheatRect = self.cheat_text.get_rect()
-        x_pos = self.screen_width * 0.01 + self.cheatRect.height
-        y_pos = self.screen_height * 0.20 + self.cheatRect.height
+
+        x_pos = self.screen_width * 0.01 + self.titanRect.width + self.aiRect.width
+        y_pos = self.screen_height * 0.20
 
         self.cheatRect.midleft = (x_pos, y_pos)
 
@@ -150,7 +151,7 @@ class ConnectFourGUI:
                 self.has_prepped_cheat = True
             elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
                 if not self.has_displayed_process:
-                    self.prep_cheat_text(f"Processing...", BLUE)
+                    self.prep_cheat_text(f"Processing. . .", BLUE)
                     self.has_displayed_process = True
                 elif self.has_displayed_process:
                     optimal = ai_helper(self.connectFour, self.connectFour.state)
@@ -169,8 +170,8 @@ class ConnectFourGUI:
         SQUARESIZE = 80  # Size of each square
         RADIUS = SQUARESIZE // 2 - 5  # Size of the pieces
         
-        NUM_COLUMNS = 6
-        NUM_ROWS = 7
+        NUM_COLUMNS = 7
+        NUM_ROWS = 6
         
         # Calculate centering
         board_width = NUM_COLUMNS * SQUARESIZE
@@ -180,7 +181,7 @@ class ConnectFourGUI:
         for c in range(NUM_COLUMNS):
             for r in range(NUM_ROWS):
                 rect_x = board_start_x + c * SQUARESIZE
-                rect_y = r * SQUARESIZE + 2*SQUARESIZE # Offset vertically
+                rect_y = r * SQUARESIZE + 3*SQUARESIZE # Offset vertically
                 pg.draw.rect(self.screen, BLUE, (rect_x, rect_y, SQUARESIZE, SQUARESIZE))
                 
                 circle_x = rect_x + SQUARESIZE // 2
@@ -195,13 +196,13 @@ class ConnectFourGUI:
                 color = YELLOW  # Yellow for Player 2 (O)
             
             piece_x = board_start_x + (col - 1) * SQUARESIZE + SQUARESIZE // 2
-            piece_y = (row - 1) * SQUARESIZE + 2*SQUARESIZE + SQUARESIZE // 2
+            piece_y = (row - 1) * SQUARESIZE + 3*SQUARESIZE + SQUARESIZE // 2   # DONT FORGET THE OFFSET
             pg.draw.circle(self.screen, color, (piece_x, piece_y), RADIUS)
 
     def setup_invisible_buttons(self):
         SQUARESIZE = 80
-        NUM_COLUMNS = 6
-        NUM_ROWS = 7
+        NUM_COLUMNS = 7
+        NUM_ROWS = 6
         self.invisible_buttons = []
         
         board_width = NUM_COLUMNS * SQUARESIZE
@@ -209,7 +210,7 @@ class ConnectFourGUI:
 
         for c in range(NUM_COLUMNS):
             x = board_start_x + c * SQUARESIZE
-            y = 2*SQUARESIZE  # Same vertical offset as draw_board
+            y = 3*SQUARESIZE  # Same vertical offset as draw_board
             width = SQUARESIZE
             height = SQUARESIZE * NUM_ROWS  # Covers all rows
             button = InvisibleButton(x, y, width, height)
