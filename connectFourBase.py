@@ -215,6 +215,7 @@ def ai_player_hard(game, state):
 # AI Helper Text
 def ai_helper(game, state, depth = 7):
     optimal = alpha_beta_cutoff_search(state, game, depth, None, winning_probability)
+    print("HOLD IT!")
     print("Pssst, the most optimal move is: ", optimal)
     return optimal
 
