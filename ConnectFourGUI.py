@@ -131,8 +131,9 @@ class ConnectFourGUI:
         self.display_cheat = False
         self.has_prepped_cheat = False
         self.has_displayed_process = False
+        self.prep_cheat_text()
 
-    def prep_cheat_text(self, declaration = "", color = ORANGE):
+    def prep_cheat_text(self, declaration = "Cheat!", color = ORANGE):
         font_cheat = pg.font.Font(PIXEL, 35)
 
         self.cheat_text = font_cheat.render(f"{declaration}", True, color)
@@ -163,8 +164,8 @@ class ConnectFourGUI:
                     self.prep_cheat_text(f"Column: {optimal[1]}")
                     self.has_prepped_cheat = True
         
-        if self.display_cheat:
-                self.draw_cheat_text()
+        # if self.display_cheat:
+        self.draw_cheat_text()
 
     def prep_probability_text(self):
         font_p = pg.font.Font(PIXEL, 35)
@@ -346,8 +347,9 @@ class ConnectFourGUI:
         for i, button in enumerate(self.invisible_buttons):
             if button.is_clicked(event.pos):
                 self.connectFour.gui.selected_move = i + 1  # Store the selected column (1-indexed)
-                self.display_cheat = False  # Move has been made. No need to display cheat.
+                self.display_cheat = False  # Move has been made. Cheat is now obsolete
                 self.has_displayed_process = False
+                self.prep_cheat_text()      # Resetting to default
                 # print(i + 1)
                 break  # Exit loop after the first valid click
     
