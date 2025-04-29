@@ -214,7 +214,7 @@ def ai_player_hard(game, state):
 
 # AI Helper Text
 def ai_helper(game, state, depth = 7):
-    optimal = alpha_beta_cutoff_search(state, game, depth, None, None)
+    optimal = alpha_beta_cutoff_search(state, game, depth, None, winning_probability)
     print("Pssst, the most optimal move is: ", optimal)
     return optimal
 
@@ -235,7 +235,7 @@ def text_player(game, state):
         print('no legal moves: passing turn to next player')
     return move
 
-# Uses evaluation function to find probability. Courtesy of Deepseek.
+# Uses evaluation function to find probability.
 def winning_probability(state):
     player = state.to_move
     opponent = 'O' if player == 'X' else 'X'
