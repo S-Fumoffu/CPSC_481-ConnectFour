@@ -237,37 +237,46 @@ def connect_four_eval_fn(state):
     opponent = 'O' if player == 'X' else 'X'
     board = state.board  # Dict: (row, col) -> 'X' or 'O'
 
-    rows = 7
-    cols = 6
+    rows = 6  # 6 rows (vertical)
+    cols = 7  # 7 columns (horizontal)
 
     # Processing Board
     def get_cell(r, c):
         return board.get((r, c), ' ')  # Empty spaces are ' '
 
-    def count_windows(cells, num_discs, piece):
+    def count_windows(windows, num_discs, piece):
         count = 0
-        for window in cells:
+        for window in windows:
             if window.count(piece) == num_discs and window.count(' ') == (4 - num_discs):
                 count += 1
         return count
 
+    def imminent_threat(windows, piece):
+        for window in windows:
+            if window.count(piece) == 3 and window.count(' ') == 1:
+                return True
+        return False
+
     windows = []
 
     # Horizontal windows
-    for r in range(1, rows + 1):
-        for c in range(1, cols - 3 + 1):
+    for r in range(1, rows + 1):            # Row from 1 to 6
+        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
             windows.append([get_cell(r, c+i) for i in range(4)])
+    
     # Vertical windows
-    for r in range(1, rows - 3 + 1):
-        for c in range(1, cols + 1):
+    for r in range(1, rows - 3 + 1):         # Row from 1 to 3
+        for c in range(1, cols + 1):         # Col from 1 to 7
             windows.append([get_cell(r+i, c) for i in range(4)])
-    # Positive diagonal windows
-    for r in range(1, rows - 3 + 1):
-        for c in range(1, cols - 3 + 1):
+    
+    # Positive diagonal windows (bottom-left to top-right)
+    for r in range(1, rows - 3 + 1):         # Row from 1 to 3
+        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
             windows.append([get_cell(r+i, c+i) for i in range(4)])
-    # Negative diagonal windows
-    for r in range(4, rows + 1):
-        for c in range(1, cols - 3 + 1):
+    
+    # Negative diagonal windows (top-left to bottom-right)
+    for r in range(4, rows + 1):             # Row from 4 to 6
+        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
             windows.append([get_cell(r-i, c+i) for i in range(4)])
     
     # === Instant win/loss detection ===
@@ -277,10 +286,15 @@ def connect_four_eval_fn(state):
         if window.count(opponent) == 4:
             return -1_000_000
 
+    # Imminent threat emergency block override
+    if imminent_threat(windows, opponent):
+        print(-999_999)
+        return -999_999
+
     score = 0
 
-    # Center weighting array for columns 1-6
-    center_weights = {1: 3, 2: 4, 3: 5, 4: 5, 5: 4, 6: 3}
+    # Center weighting array for columns 1-7
+    center_weights = {1: 3, 2: 4, 3: 5, 4: 7, 5: 5, 6: 4, 7: 3}
 
     # Center column bonus
     for r in range(1, rows + 1):
@@ -302,9 +316,11 @@ def connect_four_eval_fn(state):
     score -= 4 * opponent_two
     score -= 12 * opponent_three
 
-    # Adaptive bonuses
-    score += 100 * count_windows(windows, 3, player)
-    score -= 120 * count_windows(windows, 3, opponent)
+    # Adaptive bonuses (favor 3-in-a-row heavily)
+    score += 100 * player_three
+    score -= 120 * opponent_three
+
+    print(score)
 
     return score
 
