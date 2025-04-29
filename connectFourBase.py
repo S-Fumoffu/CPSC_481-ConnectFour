@@ -73,6 +73,7 @@ class ConnectFourBase(TicTacToe):
         self.current_player_index = 0
         self.game_over = False
         self.display(self.state)
+        print("")
 
     def play_turn(self):
         """Plays as many moves as needed until a human input is needed."""
@@ -89,7 +90,7 @@ class ConnectFourBase(TicTacToe):
         # Otherwise, move is valid -> apply it
         self.state = self.result(self.state, move)
         self.display(self.state)
-        pg.display.flip()
+        print("")
 
         if self.terminal_test(self.state):
             self.game_over = True

@@ -20,7 +20,7 @@ class ConnectFourGUI:
         self.screen_width = self.screen.get_rect().width
         self.screen_height = self.screen.get_rect().height
 
-        # Title
+        # Text
         self.initialize_title()
         self.initialize_title_game()
 
@@ -56,13 +56,13 @@ class ConnectFourGUI:
         difference = self.title_four.get_width() - self.title_connect.get_width()
 
         # Vertical Position
-        height = self.screen_height * 0.15
+        y_pos = self.screen_height * 0.15
 
         self.connectRect = self.title_connect.get_rect()
-        self.connectRect.midright = ((self.screen_width / 2) - (difference / 2), height)
+        self.connectRect.midright = ((self.screen_width / 2) - (difference / 2), y_pos)
 
         self.fourRect = self.title_four.get_rect()
-        self.fourRect.midleft = ((self.screen_width / 2) - (difference / 2), height)
+        self.fourRect.midleft = ((self.screen_width / 2) - (difference / 2), y_pos)
 
     def draw_title(self):
         self.screen.blit(self.title_connect, self.connectRect)
@@ -75,34 +75,95 @@ class ConnectFourGUI:
 
         # Find offset
         difference = self.title_progress.get_width() - self.title_in.get_width()
-        height = self.screen_height * 0.10
-
+        y_pos = self.screen_height * 0.10
 
         self.inRect = self.title_in.get_rect()
-        self.inRect.midright = ((self.screen_width / 2) - (difference / 2), height)
+        self.inRect.midright = ((self.screen_width / 2) - (difference / 2), y_pos)
 
         self.progressRect = self.title_progress.get_rect()
-        self.progressRect.midleft = ((self.screen_width / 2) - (difference / 2), height)
+        self.progressRect.midleft = ((self.screen_width / 2) - (difference / 2), y_pos)
 
     def draw_title_game(self):
         self.screen.blit(self.title_in, self.inRect)
         self.screen.blit(self.title_progress, self.progressRect)
 
     def prep_winner_text(self):
+        declaration = ""
+        color = BLACK
+        
         if self.connectFour.match_result > 0:
-            self.title_winner = self.font_game.render(f"RED IS THE WINNER!", True, RED)
+            declaration, color = "RED IS THE WINNER!", RED
         elif self.connectFour.match_result < 0:
-            self.title_winner = self.font_game.render(f"YELLOW IS THE WINNER!", True, YELLOW)
+            declaration, color = "YELLOW IS THE WINNER!", YELLOW
         else:
-            self.title_winner = self.font_game.render(f"EVERYONE IS A LOSER!", True, ORANGE)
+            declaration, color = "EVERYONE IS A LOSER!", ORANGE
 
-        height = self.screen_height * 0.10
+        self.title_winner = self.font_game.render(f"{declaration}", True, color)
+
+        y_pos = self.screen_height * 0.10
 
         self.winnerRect = self.title_winner.get_rect()
-        self.winnerRect.center = ((self.screen_width / 2), height)
+        self.winnerRect.center = ((self.screen_width / 2), y_pos)
 
     def draw_winner_text(self):
         self.screen.blit(self.title_winner, self.winnerRect)
+
+    def initialize_ai_assistant_text(self):
+        font_ai = pg.font.Font(PIXEL, 35)
+
+        self.titan_text = font_ai.render("Titan ", True, BLUE)
+        self.ai_text = font_ai.render("AI:", True, ORANGE)
+
+        x_pos = self.screen_width * 0.01
+        y_pos = self.screen_height * 0.20
+
+        self.titanRect = self.titan_text.get_rect()
+        self.aiRect = self.ai_text.get_rect()
+
+        self.titanRect.midleft = (x_pos, y_pos)
+        self.aiRect.midleft = (x_pos + self.titan_text.get_width(), y_pos)
+
+    def draw_ai_assistant_text(self):
+        self.screen.blit(self.titan_text, self.titanRect)
+        self.screen.blit(self.ai_text, self.aiRect)
+
+    def prep_cheat_text(self, declaration = "", color = ORANGE):
+        font_cheat = pg.font.Font(PIXEL, 25)
+
+        self.cheat_text = font_cheat.render(f"{declaration}", True, color)
+        self.cheatRect = self.cheat_text.get_rect()
+        x_pos = self.screen_width * 0.01 + self.cheatRect.height
+        y_pos = self.screen_height * 0.20 + self.cheatRect.height
+
+        self.cheatRect.midleft = (x_pos, y_pos)
+
+    def draw_cheat_text(self):
+        self.screen.blit(self.cheat_text, self.cheatRect)
+
+    def update_cheat_text(self):
+        if not self.has_prepped_cheat and self.display_cheat:
+            if self.connectFour.game_modes[self.connectFour.mode_index] == "AI vs AI":
+                self.prep_cheat_text(f"You're not even playing!")
+                self.has_prepped_cheat = True
+            elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
+                self.prep_cheat_text(f"You already lost, LOSER!")
+                self.has_prepped_cheat = True
+            elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
+                if not self.has_displayed_process:
+                    self.prep_cheat_text(f"Processing...", BLUE)
+                    self.has_displayed_process = True
+                elif self.has_displayed_process:
+                    optimal = ai_helper(self.connectFour, self.connectFour.state)
+                    self.prep_cheat_text(f"Column: {optimal[1]}")
+                    self.has_prepped_cheat = True
+        
+        if self.display_cheat:
+                self.draw_cheat_text()
+
+    def initialize_cheat_text(self):
+        self.display_cheat = False
+        self.has_prepped_cheat = False
+        self.has_displayed_process = False
 
     def draw_board(self):
         SQUARESIZE = 80  # Size of each square
@@ -213,19 +274,17 @@ class ConnectFourGUI:
 
     def check_cheat_button(self, event):
         if self.cheat_button.rect.collidepoint(event.pos):
-            if self.connectFour.game_modes[self.connectFour.mode_index] == "AI vs AI":
-                print("What? What do you need my help for anyways?!")
-            elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
-                print("You already lost, loser!")
-            elif self.connectFour.game_states[self.connectFour.state_index] == "PLAYING":
-                optimal = ai_helper(self.connectFour, self.connectFour.state)[1]
-                print("The optimal move is: column: ", optimal)
+            self.has_prepped_cheat = False
+            self.has_displayed_process = False
+            self.display_cheat = True
 
     def check_invisible_buttons(self, event):
         # Check if any invisible button is clicked (column selection)
         for i, button in enumerate(self.invisible_buttons):
             if button.is_clicked(event.pos):
                 self.connectFour.gui.selected_move = i + 1  # Store the selected column (1-indexed)
+                self.display_cheat = False  # Move has been made. No need to display cheat.
+                self.has_displayed_process = False
                 # print(i + 1)
                 break  # Exit loop after the first valid click
     
@@ -236,6 +295,9 @@ class ConnectFourGUI:
         self.connectFour.difficulty_index = 0   # N/A Difficulty
 
     def to_play_game(self):
+        self.initialize_ai_assistant_text()
+        self.initialize_cheat_text()
+
         self.connectFour.state_index = 2         # State = Playing
         self.connectFour.start_game()
 
@@ -244,6 +306,9 @@ class ConnectFourGUI:
 
     def to_game_over(self):
         self.prep_winner_text()
+        self.initialize_ai_assistant_text()
+        self.initialize_cheat_text()
+
         self.connectFour.state_index = 3
 
     def run(self):
@@ -326,14 +391,20 @@ class ConnectFourGUI:
                 self.draw_board()
                 self.menu_button.draw()
                 self.reset_button.draw()
-                self.cheat_button.draw()
                 
+                self.draw_ai_assistant_text()
+                self.cheat_button.draw()
+                self.update_cheat_text()
+
             elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
                 self.draw_winner_text()
                 self.draw_board()
                 self.menu_button.draw()
                 self.reset_button.draw()
+
+                self.draw_ai_assistant_text()
                 self.cheat_button.draw()
+                self.update_cheat_text()
         
             pg.display.flip()
 
