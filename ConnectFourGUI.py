@@ -127,6 +127,11 @@ class ConnectFourGUI:
         self.screen.blit(self.titan_text, self.titanRect)
         self.screen.blit(self.ai_text, self.aiRect)
 
+    def initialize_cheat_text(self):
+        self.display_cheat = False
+        self.has_prepped_cheat = False
+        self.has_displayed_process = False
+
     def prep_cheat_text(self, declaration = "", color = ORANGE):
         font_cheat = pg.font.Font(PIXEL, 35)
 
@@ -161,10 +166,67 @@ class ConnectFourGUI:
         if self.display_cheat:
                 self.draw_cheat_text()
 
-    def initialize_cheat_text(self):
-        self.display_cheat = False
-        self.has_prepped_cheat = False
-        self.has_displayed_process = False
+    def prep_probability_text(self):
+        font_p = pg.font.Font(PIXEL, 35)
+
+        # Formatting
+        probability = 1.0
+        percent = f"{int(round(probability * 100)):>3d}%"
+
+        # Vertical Spacing
+        vertical_spacer = font_p.render(" ", True, BLUE).get_rect().height
+
+        self.victory_colors = [RED, YELLOW]
+
+        self.percent_colors_thresholds = [
+            (0.8, MAGENTA),
+            (0.6, CYAN),
+            (0.4, GREEN),
+            (0.2, YELLOW),
+            (0.0, RED)]
+
+        self.chance_text = font_p.render("Chance", True, BLUE)
+        self.of_text = font_p.render("Of", True, BLUE)
+        self.victory_text = font_p.render("Victory", True, ORANGE)
+        self.percent_text = font_p.render(f"{percent}", True, GREEN)
+
+        x_pos = self.screen_width * 0.90
+        y_pos = self.screen_height * 0.25
+
+        self.chanceRect = self.chance_text.get_rect()
+        self.ofRect = self.of_text.get_rect()
+        self.victoryRect = self.victory_text.get_rect()
+        self.percentRect = self.percent_text.get_rect()
+        
+
+        self.chanceRect.center = (x_pos, y_pos)
+        self.ofRect.center = (x_pos, y_pos + vertical_spacer)
+        self.victoryRect.center = (x_pos, y_pos + 2*vertical_spacer)
+        self.percentRect.center = (x_pos, y_pos + 3*vertical_spacer)
+    
+    def draw_probability_text(self):
+        self.screen.blit(self.chance_text, self.chanceRect)
+        self.screen.blit(self.of_text, self.ofRect)
+        self.screen.blit(self.victory_text, self.victoryRect)
+        self.screen.blit(self.percent_text, self.percentRect)
+
+    def update_probability_text(self):
+        font_p = pg.font.Font(PIXEL, 35)
+
+        probability = self.connectFour.victory_probability
+
+        for threshold, color in self.percent_colors_thresholds:
+            if probability >= threshold:
+                percent_color = color
+                break
+
+        percent = f"{int(round(probability * 100)):>3d}%"
+        self.percent_text = font_p.render(f"{percent}", True, percent_color)
+        
+        victory_color = self.victory_colors[0 if self.connectFour.current_player_index == 0 else 1]
+        self.victory_text = font_p.render("Victory", True, victory_color)
+
+        self.draw_probability_text()
 
     def draw_board(self):
         SQUARESIZE = 80  # Size of each square
@@ -298,6 +360,7 @@ class ConnectFourGUI:
     def to_play_game(self):
         self.initialize_ai_assistant_text()
         self.initialize_cheat_text()
+        self.prep_probability_text()
 
         self.connectFour.state_index = 2         # State = Playing
         self.connectFour.start_game()
@@ -309,6 +372,7 @@ class ConnectFourGUI:
         self.prep_winner_text()
         self.initialize_ai_assistant_text()
         self.initialize_cheat_text()
+        self.prep_probability_text()
 
         self.connectFour.state_index = 3
 
@@ -396,6 +460,7 @@ class ConnectFourGUI:
                 self.draw_ai_assistant_text()
                 self.cheat_button.draw()
                 self.update_cheat_text()
+                self.update_probability_text()
 
             elif self.connectFour.game_states[self.connectFour.state_index] == "GAME OVER":
                 self.draw_winner_text()
@@ -406,6 +471,7 @@ class ConnectFourGUI:
                 self.draw_ai_assistant_text()
                 self.cheat_button.draw()
                 self.update_cheat_text()
+                self.update_probability_text()
         
             pg.display.flip()
 

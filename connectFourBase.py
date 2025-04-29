@@ -52,6 +52,7 @@ class ConnectFourBase(TicTacToe):
                 print(state)
 
                 print("Player: ", player)
+                print("Victory Probability: ", winning_probability(state))
 
                 move = player(self, state)
                 state = self.result(state, move)
@@ -69,6 +70,7 @@ class ConnectFourBase(TicTacToe):
         self.state = self.initial
         self.current_players = [self.player1, self.player2]
         self.match_result = 0
+        self.victory_probability = winning_probability(self.state)
 
         self.current_player_index = 0
         self.game_over = False
@@ -81,6 +83,10 @@ class ConnectFourBase(TicTacToe):
             return
 
         player = self.current_players[self.current_player_index]
+
+        # Calculates Victory Probability Via Heuristic
+        self.victory_probability = winning_probability(self.state)
+        
         move = player(self, self.state)  # Human returns None if waiting for input
 
         if move is None:
@@ -198,17 +204,17 @@ def human_player(game, state):
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
-    return alpha_beta_cutoff_search(state, game, 2, None, connect_four_eval_fn)
+    return alpha_beta_cutoff_search(state, game, 2, None, None)
 
 def ai_player_medium(game, state):
-    return alpha_beta_cutoff_search(state, game, 4, None, connect_four_eval_fn)
+    return alpha_beta_cutoff_search(state, game, 4, None, None)
 
 def ai_player_hard(game, state):
-    return alpha_beta_cutoff_search(state, game, 6, None, connect_four_eval_fn)
+    return alpha_beta_cutoff_search(state, game, 6, None, None)
 
 # AI Helper Text
 def ai_helper(game, state, depth = 7):
-    optimal = alpha_beta_cutoff_search(state, game, depth, None, connect_four_eval_fn)
+    optimal = alpha_beta_cutoff_search(state, game, depth, None, None)
     print("Pssst, the most optimal move is: ", optimal)
     return optimal
 
@@ -229,101 +235,76 @@ def text_player(game, state):
         print('no legal moves: passing turn to next player')
     return move
 
-
-
-"""GPT Eval Function one ate my computer alive. Had to lower depth or simplify."""
-def connect_four_eval_fn(state):
+# Uses evaluation function to find probability. Courtesy of Deepseek.
+def winning_probability(state):
     player = state.to_move
     opponent = 'O' if player == 'X' else 'X'
-    board = state.board  # Dict: (row, col) -> 'X' or 'O'
-
-    rows = 6  # 6 rows (vertical)
-    cols = 7  # 7 columns (horizontal)
-
-    # Processing Board
+    board = state.board
+    
+    # Helper function to get cell value
     def get_cell(r, c):
-        return board.get((r, c), ' ')  # Empty spaces are ' '
-
-    def count_windows(windows, num_discs, piece):
-        count = 0
-        for window in windows:
-            if window.count(piece) == num_discs and window.count(' ') == (4 - num_discs):
-                count += 1
-        return count
-
-    def imminent_threat(windows, piece):
-        for window in windows:
-            if window.count(piece) == 3 and window.count(' ') == 1:
-                return True
-        return False
-
+        return board.get((r, c), ' ')  # Empty if not in board
+    
+    # Generate all possible 4-length windows
     windows = []
-
+    rows, cols = 6, 7
+    
     # Horizontal windows
-    for r in range(1, rows + 1):            # Row from 1 to 6
-        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
-            windows.append([get_cell(r, c+i) for i in range(4)])
+    for r in range(1, rows + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r, c + i) for i in range(4)])
     
     # Vertical windows
-    for r in range(1, rows - 3 + 1):         # Row from 1 to 3
-        for c in range(1, cols + 1):         # Col from 1 to 7
-            windows.append([get_cell(r+i, c) for i in range(4)])
+    for r in range(1, rows - 3 + 1):
+        for c in range(1, cols + 1):
+            windows.append([get_cell(r + i, c) for i in range(4)])
     
-    # Positive diagonal windows (bottom-left to top-right)
-    for r in range(1, rows - 3 + 1):         # Row from 1 to 3
-        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
-            windows.append([get_cell(r+i, c+i) for i in range(4)])
+    # Positive diagonal (bottom-left to top-right)
+    for r in range(1, rows - 3 + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r + i, c + i) for i in range(4)])
     
-    # Negative diagonal windows (top-left to bottom-right)
-    for r in range(4, rows + 1):             # Row from 4 to 6
-        for c in range(1, cols - 3 + 1):     # Col from 1 to 4
-            windows.append([get_cell(r-i, c+i) for i in range(4)])
+    # Negative diagonal (top-left to bottom-right)
+    for r in range(4, rows + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r - i, c + i) for i in range(4)])
     
-    # === Instant win/loss detection ===
+    # Check for immediate win/loss
     for window in windows:
         if window.count(player) == 4:
-            return 1_000_000
+            return 1.0  # 100% win
         if window.count(opponent) == 4:
-            return -1_000_000
-
-    # Imminent threat emergency block override
-    if imminent_threat(windows, opponent):
-        print(-999_999)
-        return -999_999
-
-    score = 0
-
-    # Center weighting array for columns 1-7
-    center_weights = {1: 3, 2: 4, 3: 5, 4: 7, 5: 5, 6: 4, 7: 3}
-
-    # Center column bonus
-    for r in range(1, rows + 1):
-        for c in range(1, cols + 1):
-            cell = get_cell(r, c)
-            if cell == player:
-                score += center_weights[c]
-            elif cell == opponent:
-                score -= center_weights[c]
-
-    # Window evaluation
-    player_two = count_windows(windows, 2, player)
-    player_three = count_windows(windows, 3, player)
-    opponent_two = count_windows(windows, 2, opponent)
-    opponent_three = count_windows(windows, 3, opponent)
-
-    score += 3 * player_two
-    score += 10 * player_three
-    score -= 4 * opponent_two
-    score -= 12 * opponent_three
-
-    # Adaptive bonuses (favor 3-in-a-row heavily)
-    score += 100 * player_three
-    score -= 120 * opponent_three
-
-    print(score)
-
-    return score
-
+            return 0.0  # 0% win
+    
+    # Feature counting
+    player_threes = sum(1 for w in windows if w.count(player) == 3 and w.count(' ') == 1)
+    opponent_threes = sum(1 for w in windows if w.count(opponent) == 3 and w.count(' ') == 1)
+    player_twos = sum(1 for w in windows if w.count(player) == 2 and w.count(' ') == 2)
+    opponent_twos = sum(1 for w in windows if w.count(opponent) == 2 and w.count(' ') == 2)
+    
+    # Center control (columns 3-5 are center)
+    center_cols = [3, 4, 5]
+    player_center = sum(1 for c in center_cols for r in range(1, rows + 1) if get_cell(r, c) == player)
+    opponent_center = sum(1 for c in center_cols for r in range(1, rows + 1) if get_cell(r, c) == opponent)
+    
+    # Calculate probability components (weights can be adjusted)
+    immediate_threat = 0.0
+    if player_threes > 0:
+        immediate_threat += 0.3  # High chance to win next move
+    if opponent_threes > 0:
+        immediate_threat -= 0.3  # High chance to lose if not blocked
+    
+    potential = (0.1 * (player_twos - opponent_twos) + 
+                0.25 * (player_threes - opponent_threes))
+    
+    center_control = 0.05 * (player_center - opponent_center)
+    
+    # Normalize to [0, 1] range
+    base_prob = 0.5  # Starting assumption
+    prob = base_prob + immediate_threat + potential + center_control
+    
+    # Clamp between 0 and 1
+    return max(0.0, min(1.0, prob))
 
 if __name__ == "__main__":
     connectFour = ConnectFourBase(game = 0)
