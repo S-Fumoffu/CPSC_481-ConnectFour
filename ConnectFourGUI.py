@@ -185,13 +185,13 @@ class ConnectFourGUI:
             (0.2, YELLOW),
             (0.0, RED)]
 
-        self.chance_text = font_p.render("Chance", True, BLUE)
+        self.chance_text = font_p.render("Chance", True, ORANGE)
         self.of_text = font_p.render("Of", True, BLUE)
         self.victory_text = font_p.render("Victory", True, ORANGE)
         self.percent_text = font_p.render(f"{percent}", True, GREEN)
 
-        x_pos = self.screen_width * 0.90
-        y_pos = self.screen_height * 0.25
+        x_pos = self.screen_width * 0.10
+        y_pos = self.screen_height * 0.27
 
         self.chanceRect = self.chance_text.get_rect()
         self.ofRect = self.of_text.get_rect()
