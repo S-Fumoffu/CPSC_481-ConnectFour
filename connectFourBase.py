@@ -49,7 +49,7 @@ class ConnectFourBase(TicTacToe):
             for player in players:
 
                 # For debugging
-                # print(state)
+                print(state)
 
                 print("Player: ", player)
 
@@ -68,7 +68,8 @@ class ConnectFourBase(TicTacToe):
         self.initialize_mode()
         self.state = self.initial
         self.current_players = [self.player1, self.player2]
-        
+        self.match_result = 0
+
         self.current_player_index = 0
         self.game_over = False
         self.display(self.state)
@@ -92,8 +93,9 @@ class ConnectFourBase(TicTacToe):
 
         if self.terminal_test(self.state):
             self.game_over = True
-            if self.utility(self.state, self.to_move(self.initial)) > 0: winner = "Player 1"
-            elif self.utility(self.state, self.to_move(self.initial)) < 0: winner = "Player 2"
+            self.match_result = self.utility(self.state, self.to_move(self.initial))
+            if self.match_result > 0: winner = "Player 1"
+            elif self.match_result < 0: winner = "Player 2"
             else: winner = "No-one"
             print(f"{winner} won!")
             return  # Game is over, no further moves
@@ -195,17 +197,17 @@ def human_player(game, state):
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
-    return alpha_beta_cutoff_search(state, game, 2, None, None)
+    return alpha_beta_cutoff_search(state, game, 2, None, connect_four_eval_fn)
 
 def ai_player_medium(game, state):
-    return alpha_beta_cutoff_search(state, game, 4, None, None)
+    return alpha_beta_cutoff_search(state, game, 4, None, connect_four_eval_fn)
 
 def ai_player_hard(game, state):
-    return alpha_beta_cutoff_search(state, game, 8, None, None)
+    return alpha_beta_cutoff_search(state, game, 6, None, connect_four_eval_fn)
 
 # AI Helper Text
-def ai_helper(game, state, depth = 9):
-    optimal = alpha_beta_cutoff_search(state, game, depth, None, None)
+def ai_helper(game, state, depth = 7):
+    optimal = alpha_beta_cutoff_search(state, game, depth, None, connect_four_eval_fn)
     print("Pssst, the most optimal move is: ", optimal)
     return optimal
 
@@ -225,6 +227,163 @@ def text_player(game, state):
     else:
         print('no legal moves: passing turn to next player')
     return move
+
+"""Deepseek Evaluation Function: Ate my PC"""
+# def connect_four_eval_fn(state):
+#     """
+#     Evaluation function for Connect 4 game.
+#     Returns a score representing the advantage of the current player (the one about to move).
+#     Higher values favor the current player.
+#     """
+#     board = state.board
+#     player = state.to_move
+#     opponent = 'O' if player == 'X' else 'X'
+#     score = 0
+    
+#     # Check all possible 4-in-a-row sequences
+#     for col in range(1, 8):  # Columns 1-7
+#         for row in range(1, 7):  # Rows 1-6
+#             # Check horizontal, vertical, and both diagonal directions
+            
+#             # Horizontal check (left to right)
+#             if col <= 4:
+#                 line = [board.get((col+i, row), None) for i in range(4)]
+#                 score += evaluate_line(line, player, opponent)
+            
+#             # Vertical check (only need to check upward)
+#             if row <= 3:
+#                 line = [board.get((col, row+i), None) for i in range(4)]
+#                 score += evaluate_line(line, player, opponent)
+            
+#             # Diagonal (bottom-left to top-right)
+#             if col <= 4 and row <= 3:
+#                 line = [board.get((col+i, row+i), None) for i in range(4)]
+#                 score += evaluate_line(line, player, opponent)
+            
+#             # Diagonal (top-left to bottom-right)
+#             if col <= 4 and row >= 4:
+#                 line = [board.get((col+i, row-i), None) for i in range(4)]
+#                 score += evaluate_line(line, player, opponent)
+    
+#     # Add center column preference
+#     center_col = 4
+#     for row in range(1, 7):
+#         if (center_col, row) in board and board[(center_col, row)] == player:
+#             score += 1
+#         elif (center_col, row) in board and board[(center_col, row)] == opponent:
+#             score -= 1
+    
+#     return score
+
+# def evaluate_line(line, player, opponent):
+#     """Helper function to evaluate a single 4-element line"""
+#     player_count = line.count(player)
+#     opponent_count = line.count(opponent)
+    
+#     # If line is blocked by opponent, it's worthless
+#     if opponent_count > 0 and player_count > 0:
+#         return 0
+    
+#     # Score potential winning lines
+#     if player_count == 4:  # Shouldn't happen since terminal states are checked first
+#         return 1000
+#     elif player_count == 3 and line.count(None) == 1:
+#         return 100
+#     elif player_count == 2 and line.count(None) == 2:
+#         return 10
+#     elif player_count == 1 and line.count(None) == 3:
+#         return 1
+    
+#     # Score opponent's threats
+#     if opponent_count == 4:  # Shouldn't happen since terminal states are checked first
+#         return -1000
+#     elif opponent_count == 3 and line.count(None) == 1:
+#         return -80  # Slightly less than player's 3 to prioritize defense
+#     elif opponent_count == 2 and line.count(None) == 2:
+#         return -8
+#     elif opponent_count == 1 and line.count(None) == 3:
+#         return -1
+    
+#     return 0
+
+
+"""GPT Eval Function one ate my computer alive. Had to lower depth or simplify."""
+def connect_four_eval_fn(state):
+    player = state.to_move
+    opponent = 'O' if player == 'X' else 'X'
+    board = state.board  # Dict: (row, col) -> 'X' or 'O'
+
+    rows = 7
+    cols = 6
+
+    # Processing Board
+    def get_cell(r, c):
+        return board.get((r, c), ' ')  # Empty spaces are ' '
+
+    def count_windows(cells, num_discs, piece):
+        count = 0
+        for window in cells:
+            if window.count(piece) == num_discs and window.count(' ') == (4 - num_discs):
+                count += 1
+        return count
+
+    windows = []
+
+    # Horizontal windows
+    for r in range(1, rows + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r, c+i) for i in range(4)])
+    # Vertical windows
+    for r in range(1, rows - 3 + 1):
+        for c in range(1, cols + 1):
+            windows.append([get_cell(r+i, c) for i in range(4)])
+    # Positive diagonal windows
+    for r in range(1, rows - 3 + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r+i, c+i) for i in range(4)])
+    # Negative diagonal windows
+    for r in range(4, rows + 1):
+        for c in range(1, cols - 3 + 1):
+            windows.append([get_cell(r-i, c+i) for i in range(4)])
+    
+    # === Instant win/loss detection ===
+    for window in windows:
+        if window.count(player) == 4:
+            return 1_000_000
+        if window.count(opponent) == 4:
+            return -1_000_000
+
+    score = 0
+
+    # Center weighting array for columns 1-6
+    center_weights = {1: 3, 2: 4, 3: 5, 4: 5, 5: 4, 6: 3}
+
+    # Center column bonus
+    for r in range(1, rows + 1):
+        for c in range(1, cols + 1):
+            cell = get_cell(r, c)
+            if cell == player:
+                score += center_weights[c]
+            elif cell == opponent:
+                score -= center_weights[c]
+
+    # Window evaluation
+    player_two = count_windows(windows, 2, player)
+    player_three = count_windows(windows, 3, player)
+    opponent_two = count_windows(windows, 2, opponent)
+    opponent_three = count_windows(windows, 3, opponent)
+
+    score += 3 * player_two
+    score += 10 * player_three
+    score -= 4 * opponent_two
+    score -= 12 * opponent_three
+
+    # Adaptive bonuses
+    score += 100 * count_windows(windows, 3, player)
+    score -= 120 * count_windows(windows, 3, opponent)
+
+    return score
+
 
 if __name__ == "__main__":
     connectFour = ConnectFourBase(game = 0)

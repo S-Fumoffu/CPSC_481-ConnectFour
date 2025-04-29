@@ -14,7 +14,8 @@ class Button:
         self.width, self.height = 200, 55
         self.msg = msg
         self.font = pygame.font.Font(PIXEL, 48)
-        self.text_color = WHITE
+        # self.text_color = WHITE
+        self.text_colors = [WHITE, BLUE]
         self.highlighted = False
         self.colors = [BLUE, ORANGE]
         self.position = pos
@@ -31,6 +32,8 @@ class Button:
     def color(self): return self.colors[0 if not self.highlighted else 1]
     """new function for returning Titan colors when mouse-over"""
 
+    def text_color(self): return self.text_colors[0 if not self.highlighted else 1]
+
     def set_highlight(self, pos): 
         """sets highlight for Titan-colored buttons when mouse over"""
         r = self.rect
@@ -40,7 +43,7 @@ class Button:
     def prep_msg(self, msg):
         """Turn msg into a rendered image and center text on the button."""
         self.msg = msg
-        self.msg_image = self.font.render(msg, True, self.text_color,
+        self.msg_image = self.font.render(msg, True, self.text_color(),
                 self.color())
         self.msg_image_rect = self.msg_image.get_rect()
         self.width = self.msg_image_rect.width + self.spacing
