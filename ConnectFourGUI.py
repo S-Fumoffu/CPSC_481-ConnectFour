@@ -1,5 +1,6 @@
 import pygame as pg
 import sys
+import os
 from colors import *
 from fonts import *
 from button import Button
@@ -10,11 +11,20 @@ import ctypes
 ctypes.windll.user32.SetProcessDPIAware()
 class ConnectFourGUI:
     def __init__(self):
-        
+        # Initializing PyGame
         pg.init()
+
+        # Setting Screen
         self.screen = pg.display.set_mode((900, 900))
 
+        # Setting Caption
         pg.display.set_caption("Connect Four")
+
+        # Setting Icon
+        icon_path = resource_path("assets/icon/connectFourIcon.png")
+        icon_surface = pg.image.load(icon_path)
+        pg.display.set_icon(icon_surface)
+
 
         # For positioning
         self.screen_width = self.screen.get_rect().width
@@ -476,6 +486,10 @@ class ConnectFourGUI:
                 self.update_probability_text()
         
             pg.display.flip()
+
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 if __name__ == "__main__":
     connectFour = ConnectFourGUI()
