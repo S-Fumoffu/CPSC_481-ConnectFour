@@ -14,7 +14,7 @@ To Run:
 - If you have all dependencies: Run ConnectFourGUI.
 - Else, you can run the standalone application by simply opening it.
 
-To Compile:
+To Compile for Windows:
 py -m PyInstaller --onefile ^
 --add-data "assets\fonts\Grand9K Pixel.ttf;assets\fonts" ^
 --add-data "assets\icon\connectFouricon.png;assets\icon" ^
