@@ -8,7 +8,7 @@ from invisible_button import InvisibleButton
 from connectFourBase import *
 
 import ctypes
-ctypes.windll.user32.SetProcessDPIAware()
+        
 class ConnectFourGUI:
     def __init__(self):
         # Initializing PyGame
@@ -491,6 +491,22 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-if __name__ == "__main__":
+# This is to ensure Windows does not mess with the display.
+def windows_bugger_off():
+    # If Windows:
+    if os.name == "nt":
+        try:
+            # Tell Windows to bugger off.
+            ctypes.windll.user32.SetProcessDPIAware()
+        except (AttributeError, OSError):
+            # Do nothing
+            pass
+
+def main():
+    windows_bugger_off()
     connectFour = ConnectFourGUI()
     connectFour.run()
+    
+
+if __name__ == "__main__":
+    main()
