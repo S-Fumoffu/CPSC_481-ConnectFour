@@ -204,17 +204,17 @@ def human_player(game, state):
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
-    return alpha_beta_cutoff_search(state, game, 2, None, None)
+    return alpha_beta_cutoff_search(state, game, 2, None, prob_to_eval)
 
 def ai_player_medium(game, state):
-    return alpha_beta_cutoff_search(state, game, 4, None, None)
+    return alpha_beta_cutoff_search(state, game, 4, None, prob_to_eval)
 
 def ai_player_hard(game, state):
-    return alpha_beta_cutoff_search(state, game, 6, None, None)
+    return alpha_beta_cutoff_search(state, game, 6, None, prob_to_eval)
 
 # AI Helper Text
 def ai_helper(game, state, depth = 7):
-    optimal = alpha_beta_cutoff_search(state, game, depth, None, winning_probability)
+    optimal = alpha_beta_cutoff_search(state, game, depth, None, prob_to_eval)
     print("HOLD IT!")
     print("Pssst, the most optimal move is: ", optimal)
     return optimal
@@ -306,6 +306,9 @@ def winning_probability(state):
     
     # Clamp between 0 and 1
     return max(0.0, min(1.0, prob))
+
+def prob_to_eval(state):
+    return (winning_probability(state) - 0.5)
 
 if __name__ == "__main__":
     connectFour = ConnectFourBase(game = 0)
