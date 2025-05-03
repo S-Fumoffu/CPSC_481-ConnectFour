@@ -179,6 +179,8 @@ class ConnectFourBase(TicTacToe):
                 self.player1 = ai_player_hard
                 self.player2 = ai_player_hard
 
+# ______________________________________________________________________________
+
 # Query Player
 def human_player(game, state):
     """Make a move by querying available actions and the selected column."""
@@ -204,15 +206,15 @@ def human_player(game, state):
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
-    return alpha_beta_cutoff_search(state, game, 2, None, None)
+    return alpha_beta_cutoff_search_override(state, game, 2, None, prob_to_eval)
 
 def ai_player_medium(game, state):
-    return alpha_beta_cutoff_search(state, game, 4, None, None)
+    return alpha_beta_cutoff_search_override(state, game, 4, None, prob_to_eval)
 
 def ai_player_hard(game, state):
-    return alpha_beta_cutoff_search(state, game, 6, None, None)
+    return alpha_beta_cutoff_search_override(state, game, 6, None, prob_to_eval)
 
-# AI Helper Text
+# AI Helper
 def ai_helper(game, state, depth = 7):
     optimal = alpha_beta_cutoff_search(state, game, depth, None, prob_to_eval)
     print("HOLD IT!")
@@ -235,6 +237,9 @@ def text_player(game, state):
     else:
         print('no legal moves: passing turn to next player')
     return move
+
+# ______________________________________________________________________________
+# Heuristics
 
 # Uses evaluation function to find probability.
 def winning_probability(state):
@@ -307,9 +312,63 @@ def winning_probability(state):
     # Clamp between 0 and 1
     return max(0.0, min(1.0, prob))
 
-# Converts probability to eval.
+# Converts probability to eval. Clamps to [-0.5, +0.5]
 def prob_to_eval(state):
     return max(-0.5, min(0.5, (winning_probability(state) - 0.5)))
+
+# ______________________________________________________________________________
+# Overwriting minmax cutoff search
+
+# If terminal, return 1, 0, or -1. If cutoff, return the eval value.
+def alpha_beta_cutoff_search_override(state, game, d=4, cutoff_test=None, eval_fn=None):
+    """Search game to determine best action; use alpha-beta pruning.
+    This version cuts off search and uses an evaluation function."""
+
+    player = game.to_move(state)
+
+    # Functions used by alpha_beta
+    def max_value(state, alpha, beta, depth):
+        if game.terminal_test(state):
+            return game.utility(state, player)
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = -np.inf
+        for a in game.actions(state):
+            v = max(v, min_value(game.result(state, a), alpha, beta, depth + 1))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        return v
+
+    def min_value(state, alpha, beta, depth):
+        if game.terminal_test(state):
+            return game.utility(state, player)
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = np.inf
+        for a in game.actions(state):
+            v = min(v, max_value(game.result(state, a), alpha, beta, depth + 1))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+        return v
+
+    # Body of alpha_beta_cutoff_search starts here:
+    # The default test cuts off at depth d or at a terminal state
+    cutoff_test = (cutoff_test or (lambda state, depth: depth > d or game.terminal_test(state)))
+    eval_fn = eval_fn or (lambda state: game.utility(state, player))
+    best_score = -np.inf
+    beta = np.inf
+    best_action = None
+    for a in game.actions(state):
+        v = min_value(game.result(state, a), best_score, beta, 1)
+        if v > best_score:
+            best_score = v
+            best_action = a
+    return best_action
+
+# ______________________________________________________________________________
+# Main
 
 if __name__ == "__main__":
     connectFour = ConnectFourBase(game = 0)
