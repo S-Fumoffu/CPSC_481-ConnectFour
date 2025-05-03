@@ -241,7 +241,7 @@ def text_player(game, state):
 # ______________________________________________________________________________
 # Heuristics
 
-# Uses evaluation function to find probability.
+# Probability Function: Uses heuristics to find probability.
 def winning_probability(state):
     player = state.to_move
     opponent = 'O' if player == 'X' else 'X'
@@ -312,7 +312,7 @@ def winning_probability(state):
     # Clamp between 0 and 1
     return max(0.0, min(1.0, prob))
 
-# Converts probability to eval. Clamps to [-0.5, +0.5]
+# Evaluation Function: Converts probability to evaluation value. Clamps to [-0.5, +0.5]
 def prob_to_eval(state):
     return max(-0.5, min(0.5, (winning_probability(state) - 0.5)))
 
