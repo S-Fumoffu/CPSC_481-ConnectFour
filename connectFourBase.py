@@ -204,13 +204,13 @@ def human_player(game, state):
 
 # AlphaBetaGamer
 def ai_player_easy(game, state):
-    return alpha_beta_cutoff_search(state, game, 2, None, prob_to_eval)
+    return alpha_beta_cutoff_search(state, game, 2, None, None)
 
 def ai_player_medium(game, state):
-    return alpha_beta_cutoff_search(state, game, 4, None, prob_to_eval)
+    return alpha_beta_cutoff_search(state, game, 4, None, None)
 
 def ai_player_hard(game, state):
-    return alpha_beta_cutoff_search(state, game, 6, None, prob_to_eval)
+    return alpha_beta_cutoff_search(state, game, 6, None, None)
 
 # AI Helper Text
 def ai_helper(game, state, depth = 7):
@@ -307,9 +307,9 @@ def winning_probability(state):
     # Clamp between 0 and 1
     return max(0.0, min(1.0, prob))
 
-# Converts probability to eval
+# Converts probability to eval.
 def prob_to_eval(state):
-    return (winning_probability(state) - 0.5)
+    return max(-0.5, min(0.5, (winning_probability(state) - 0.5)))
 
 if __name__ == "__main__":
     connectFour = ConnectFourBase(game = 0)
