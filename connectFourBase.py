@@ -307,6 +307,7 @@ def winning_probability(state):
     # Clamp between 0 and 1
     return max(0.0, min(1.0, prob))
 
+# Converts probability to eval
 def prob_to_eval(state):
     return (winning_probability(state) - 0.5)
 
