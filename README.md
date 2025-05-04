@@ -20,3 +20,20 @@ py -m PyInstaller --onefile ^
 --add-data "assets\icon\connectFourIcon.png;assets\icon" ^
 --icon=assets\icon\connectFourIcon.ico ^
 ConnectFourGUI.py
+
+Layout:
+Core:
+    connectFourGUI.py - GUI front-end of the connect four game
+    connectFourBase.py - Logical back-end of the game. You can also run text-based version here.
+    games.py - Sourced from AIMA PYTHON.
+                connectFourBase inherits from Tic Tac Toe from here.
+                It also made use of its query player, alpha_beta_gamer, and minimax cutoff search algorithm,
+                until we modified them and placed them in connectFourBase.
+    utils.py - A dependency of games.py
+
+Peripheral:
+    Assets Folder - contains fonts and icons used for the GUI.
+    button.py - Repurposed code from another project that handles the logic for creating buttons in PyGame.
+    invisible_button.py - Invisible buttons - ConnectFourGUI uses these to determine which column you've clicked to place your piece.
+    colors.py - Globally assigns tuples (RR,GG,BB) to variables with color names such as GREEN that is then used for color in Pygame.
+    fonts.py - Loads in the fonts from assets which is then imported to connectFourGUI.py and button.py.
