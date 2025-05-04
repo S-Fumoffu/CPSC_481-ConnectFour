@@ -36,6 +36,7 @@ Core:
 Peripheral:
     - Assets Folder - contains fonts and icons used for the GUI.
     - button.py - Repurposed code from another project that handles the logic for creating buttons in PyGame.
-    - invisible_button.py - Invisible buttons - ConnectFourGUI uses these to determine which column you've clicked to place your piece.
+    - invisible_button.py - Handles logic for creating invisible buttons.
+                            ConnectFourGUI uses these to determine which column the player has clicked to place their piece.
     - colors.py - Globally assigns tuples (RR,GG,BB) to variables with color names such as GREEN that is then used for color in Pygame.
     - fonts.py - Loads in the fonts from assets which is then imported to connectFourGUI.py and button.py.
