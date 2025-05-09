@@ -6,6 +6,9 @@ Players can use a hint button to return the best calculated optimal move.
 
 ## Project Members:
 
+- Sinan Abdul-Hafiz
+
+- Cristina Hernandez
 
 ## Instructions
 
